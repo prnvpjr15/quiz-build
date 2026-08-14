@@ -4,7 +4,9 @@ const { QuizGenerationSchema } = require('./schema');
 
 const MAX_ATTEMPTS = 3;
 const TRANSIENT_RETRIES = 4;
-const BACKOFF_BASE_MS = 1000;
+// Tunable so retry aggressiveness can be adjusted per environment, and so
+// tests can collapse the backoff schedule instead of sleeping for seconds.
+const BACKOFF_BASE_MS = Number(process.env.BACKOFF_BASE_MS) || 1000;
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.7-flash';
 
 // Constructed on first use, not at import time, so requiring this module
@@ -15,6 +17,13 @@ function getClient() {
     client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
   return client;
+}
+
+// Test seam: substitutes a stub exposing the same surface this module uses
+// ({ models: { generateContent } }), so the retry and schema-correction paths
+// can be driven without a network call or an API key.
+function setClientForTesting(stub) {
+  client = stub;
 }
 
 const JSON_SHAPE_DESCRIPTION = `Respond with ONLY a single JSON object, no markdown code fences and no prose before or after it. The object must match this exact shape:
@@ -174,4 +183,4 @@ async function generateQuiz(params) {
   throw new Error(`Failed to generate a valid quiz after ${MAX_ATTEMPTS} attempts: ${lastError}`);
 }
 
-module.exports = { generateQuiz, UpstreamUnavailableError };
+module.exports = { generateQuiz, UpstreamUnavailableError, setClientForTesting };
