@@ -9,7 +9,10 @@
     "dev": "nodemon src/index.js",
     "test": "node --test",
     "test:watch": "node --test --watch",
-    "test:coverage": "node --test --experimental-test-coverage"
+    "test:coverage": "node --test --experimental-test-coverage",
+    "eval:grading": "node eval/grading.js",
+    "eval:generation": "node eval/generation.js",
+    "eval:baseline": "node eval/promoteBaseline.js"
   },
   "engines": {
     "node": ">=22"

@@ -1,4 +1,4 @@
-const { normalize, similarity } = require('./textMatch');
+const { normalize, isFuzzyMatch } = require('./textMatch');
 const { judgeAnswer } = require('./answerJudge');
 const metrics = require('./metrics');
 
@@ -27,7 +27,7 @@ async function gradeShortAnswer(question, userAnswer, judge) {
     return { correct: true, matchType: MATCH.EXACT };
   }
 
-  if (similarity(submitted, question.correctAnswer) >= FUZZY_THRESHOLD) {
+  if (isFuzzyMatch(submitted, question.correctAnswer, FUZZY_THRESHOLD)) {
     metrics.increment('shortAnswersFuzzy');
     return { correct: true, matchType: MATCH.FUZZY };
   }

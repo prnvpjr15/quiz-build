@@ -1,5 +1,6 @@
 const { GoogleGenAI } = require('@google/genai');
 const metrics = require('./metrics');
+const { logger } = require('./logger');
 
 const TRANSIENT_RETRIES = 4;
 // Tunable so retry aggressiveness can be adjusted per environment, and so
@@ -101,7 +102,12 @@ async function callModelWithBackoff(contents, { systemPrompt, maxOutputTokens, l
 
       if (attempt < TRANSIENT_RETRIES) {
         const delay = BACKOFF_BASE_MS * 2 ** (attempt - 1);
-        console.warn(`Model unavailable (attempt ${attempt}/${TRANSIENT_RETRIES}), retrying in ${delay}ms`);
+        logger.warn('model unavailable, retrying', {
+          attempt,
+          of: TRANSIENT_RETRIES,
+          delayMs: delay,
+          label,
+        });
         await sleep(delay);
       }
     }

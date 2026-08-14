@@ -44,6 +44,34 @@ No API key is required: the suite substitutes a stub for the model client, so th
 
 The tests worth reading are the ones covering behaviour that is hard to verify by hand — that a schema correction actually feeds the model its own validation errors, that a 503 doesn't consume a correction attempt, that a quiz is never serialized with its answers attached, and that a judge outage degrades grading instead of failing the submission.
 
+## Evals
+
+Unit tests prove the code does what it was written to do. They cannot tell you whether the *grading* is any good, because that depends on a model's judgement. The eval harness measures that against a labeled dataset.
+
+```bash
+npm run eval:grading -- --no-judge   # deterministic stages, no API key needed
+npm run eval:grading                 # full pipeline, makes real model calls
+npm run eval:generation              # quiz quality across a fixed prompt set
+npm run eval:baseline                # promote the last run to the regression baseline
+```
+
+`eval/datasets/grading-cases.json` holds 32 labeled short-answer cases grouped into bands — literal, fuzzy, semantic paraphrase, and hard negatives (wrong answers that look textually close to the right one, like `O(n log n)` for `O(log n)`). Each run scores three implementations against the same cases:
+
+| | accuracy | recall | wrong answers credited |
+| --- | --- | --- | --- |
+| Legacy exact match | 50.0% | 15.8% | 0 |
+| Normalization + fuzzy | 68.8% | 47.4% | 0 |
+| Full pipeline | *needs quota to measure* | | |
+
+Reporting the legacy implementation alongside the current one is the point: it turns "improved short-answer grading" into a measured delta rather than a claim. Precision stays at 100% across both deterministic modes — the pipeline recovers correct answers without ever crediting a wrong one, which is the trade that matters for a grader.
+
+Two properties worth noting, both learned the hard way from a real run:
+
+- **Runs are paced** (`--rpm`, default 5) because a rate-limited judgement silently degrades to "incorrect", which understates accuracy.
+- **Degraded runs are marked as such** and refused by `eval:baseline`. A harness that reports a quota-starved run as a measurement is worse than no harness.
+
+`eval/baselines/grading.json` is committed, so a prompt or model change shows up as a named list of fixed and regressed cases rather than a moved percentage.
+
 ## Architecture
 
 - `src/llmClient.js` — the shared model client. Prompts for JSON, validates against a caller-supplied Zod schema, and retries with the validation errors fed back to the model on failure. Requests use `responseMimeType: 'application/json'` to constrain output to valid JSON syntax; Zod still enforces the actual shape.
