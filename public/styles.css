@@ -293,6 +293,14 @@ input:focus, select:focus {
   color: var(--muted);
 }
 
+/* How a free-text answer was graded, when it was not a literal match. */
+.grading-note {
+  margin: 10px 0 0;
+  font-size: .86rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
 /* ---------- misc ---------- */
 .error {
   margin: 14px 0 0;

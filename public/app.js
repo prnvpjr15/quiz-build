@@ -150,6 +150,23 @@ function answerLabel(question, value) {
   return String(value);
 }
 
+// Explains a verdict the user could otherwise read as arbitrary: their words
+// did not match the answer key, yet they were still marked right (or wrong).
+function gradingNote(result) {
+  if (result.matchType === 'fuzzy') {
+    return 'Accepted — spelling and wording differences were ignored.';
+  }
+  if (result.matchType === 'semantic') {
+    return result.judgeReason
+      ? `Accepted as equivalent: ${result.judgeReason}`
+      : 'Accepted as equivalent to the reference answer.';
+  }
+  if (result.matchType === 'none' && result.judgeReason) {
+    return `Not accepted: ${result.judgeReason}`;
+  }
+  return null;
+}
+
 function renderResults(graded) {
   const pct = Math.round((graded.score / graded.total) * 100);
 
@@ -204,7 +221,19 @@ function renderResults(graded) {
     why.className = 'explanation';
     why.textContent = r.explanation;
 
-    card.append(badge, text, answers, why);
+    card.append(badge, text, answers);
+
+    // Free-text answers are not graded by string equality, so say how the
+    // verdict was reached when it was anything other than a literal match.
+    const note = gradingNote(r);
+    if (note) {
+      const gradingLine = document.createElement('p');
+      gradingLine.className = 'grading-note';
+      gradingLine.textContent = note;
+      card.appendChild(gradingLine);
+    }
+
+    card.appendChild(why);
     review.appendChild(card);
   });
 }
