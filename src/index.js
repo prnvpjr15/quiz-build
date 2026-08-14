@@ -10,7 +10,7 @@ if (!process.env.GEMINI_API_KEY) {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  logger.info('AQuizBuild started', {
+  logger.info('QuizBuild started', {
     port: Number(PORT),
     model: process.env.GEMINI_MODEL || 'gemini-3.7-flash',
     dbPath: process.env.DB_PATH || 'data/quizzes.db',

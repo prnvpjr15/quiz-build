@@ -1,5 +1,5 @@
 {
-  "name": "aquizbuild",
+  "name": "quizbuild",
   "version": "1.0.0",
   "description": "Generates structured, gradable quizzes from natural-language prompts using the Gemini API.",
   "main": "src/index.js",

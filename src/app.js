@@ -41,7 +41,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api', apiLimiter());
 
 app.get('/api', (req, res) => res.json({
-  service: 'AQuizBuild',
+  service: 'QuizBuild',
   endpoints: {
     'POST /api/quiz/generate': 'Create a quiz from a natural-language prompt',
     'GET /api/quiz/:id': 'Fetch a quiz with answers hidden',

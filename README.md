@@ -1,6 +1,25 @@
-# AQuizBuild
+# QuizBuild
+
+[![CI](https://github.com/prnvpjr15/quiz-build/actions/workflows/ci.yml/badge.svg)](https://github.com/prnvpjr15/quiz-build/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/live%20demo-quiz--build-2ea44f)](https://quiz-build-2dm3.onrender.com)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-333)](package.json)
 
 Turns a plain-text prompt (e.g. "JavaScript closures, medium difficulty") into a structured, gradable quiz using the Gemini API. Every LLM response is validated against a Zod schema and auto-retried with a correction prompt if it doesn't conform, so malformed data never reaches the client.
+
+**Try it: [quiz-build-2dm3.onrender.com](https://quiz-build-2dm3.onrender.com)** — hosted on a free tier, so the first request after a period of inactivity takes ~30 seconds to wake the container.
+
+<!-- Screenshot: capture the results view (score ring + per-question review) at
+     roughly 1200px wide, save it as docs/screenshot.png, and uncomment:
+![QuizBuild results view](docs/screenshot.png)
+-->
+
+## What it does
+
+- **Generates** a quiz from a natural-language topic — multiple choice, true/false, short answer, or mixed
+- **Validates** every model response against a Zod schema, re-prompting the model with its own validation errors when it doesn't conform
+- **Grades** server-side, including free-text answers, which escalate through normalization → fuzzy matching → a model judge
+- **Protects** the paid API behind per-IP rate limits and a service-wide daily spend cap
+- **Reports** token usage, cost, latency percentiles, and grading breakdown at `/api/metrics`
 
 ## Setup
 
@@ -90,11 +109,15 @@ All optional except the API key — see `.env.example` for the full list with de
 ## Docker
 
 ```bash
-docker build -t aquizbuild .
-docker run -p 3000:3000 --env-file .env -v aquizbuild-data:/app/data aquizbuild
+docker build -t quizbuild .
+docker run -p 3000:3000 --env-file .env -v quizbuild-data:/app/data quizbuild
 ```
 
 The volume keeps the SQLite database across redeploys; without it, quizzes are lost when the container is replaced.
+
+### Deploying
+
+The live instance runs on Render from this Dockerfile, with `GEMINI_API_KEY` set as an environment variable and `/health` as the health check path. Attach a persistent disk mounted at `/app/data` — container filesystems are ephemeral, so without one the SQLite database resets on every deploy and previously generated quizzes 404.
 
 ## API
 

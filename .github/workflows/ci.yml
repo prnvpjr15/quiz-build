@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['22.x', '24.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+        env:
+          # The suite stubs the model client, so no real key is ever used.
+          # Set here only so nothing trips the startup guard.
+          GEMINI_API_KEY: test-key-not-used
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t quizbuild:ci .
+
+      - name: Container serves /health
+        run: |
+          docker run -d --name quizbuild-ci -p 3000:3000 \
+            -e GEMINI_API_KEY=test-key-not-used quizbuild:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:3000/health; then
+              echo "healthy"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "container failed to become healthy"
+          docker logs quizbuild-ci
+          exit 1
