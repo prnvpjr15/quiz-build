@@ -1,15 +1,13 @@
-// Collapse the backoff schedule before llmService reads it at import time,
+// Collapse the backoff schedule before llmClient reads it at import time,
 // so the transient-retry tests finish in milliseconds rather than seconds.
 process.env.BACKOFF_BASE_MS = '1';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {
-  generateQuiz,
-  UpstreamUnavailableError,
-  setClientForTesting,
-} = require('../src/llmService');
+const { generateQuiz } = require('../src/llmService');
+const { UpstreamUnavailableError, setClientForTesting } = require('../src/llmClient');
 const { validQuiz, schemaViolatingQuiz, transientError, fakeClient } = require('./helpers');
+const metrics = require('../src/metrics');
 
 const params = {
   prompt: 'JavaScript closures',
@@ -22,6 +20,8 @@ const params = {
 function conversationText(request) {
   return JSON.stringify(request.contents);
 }
+
+test.beforeEach(() => metrics.reset());
 
 test('returns a validated quiz with a server-assigned id per question', async () => {
   const { stub, calls } = fakeClient([validQuiz]);
@@ -66,6 +66,8 @@ test('recovers from malformed JSON and then a schema violation, feeding errors b
   const thirdCall = conversationText(calls[2]);
   assert.match(thirdCall, /did not match the required schema/);
   assert.match(thirdCall, /correctAnswerIndex/);
+
+  assert.equal(metrics.snapshot().llm.schemaRetries, 2);
 });
 
 test('gives up after MAX_ATTEMPTS of unusable content', async () => {
@@ -99,6 +101,7 @@ test('a transient 503 is retried without consuming a schema-correction attempt',
   // appended, so all three schema attempts remain available.
   assert.equal(calls[0].contents.length, 1);
   assert.equal(calls[1].contents.length, 1);
+  assert.equal(metrics.snapshot().llm.schemaRetries, 0);
 });
 
 test('retries 429 rate limits as transient', async () => {
@@ -117,6 +120,7 @@ test('a persistently unavailable model raises UpstreamUnavailableError', async (
 
   // Four transient attempts, and no schema-correction attempts burned.
   assert.equal(calls.length, 4);
+  assert.equal(metrics.snapshot().llm.schemaRetries, 0);
 });
 
 test('a non-transient error propagates immediately without retrying', async () => {
@@ -139,4 +143,47 @@ test('constrains the decoder to JSON and passes the system prompt', async () => 
   assert.equal(calls[0].config.responseMimeType, 'application/json');
   assert.match(calls[0].config.systemInstruction, /quiz generation engine/);
   assert.match(conversationText(calls[0]), /exactly 3 questions/);
+});
+
+// Keeping answer keys short is what lets deterministic matching handle most
+// short answers without a judge call.
+test('asks for concise short-answer keys when short answers are possible', async () => {
+  const { stub, calls } = fakeClient([validQuiz]);
+  setClientForTesting(stub);
+
+  await generateQuiz({ ...params, questionType: 'short-answer' });
+  assert.match(conversationText(calls[0]), /concise canonical answer/);
+});
+
+test('records token usage and latency for each call', async () => {
+  const { stub } = fakeClient([validQuiz]);
+  setClientForTesting(stub);
+
+  await generateQuiz(params);
+  const { tokens, llm, latencyMs } = metrics.snapshot();
+
+  assert.equal(llm.calls, 1);
+  assert.equal(tokens.prompt, 100);
+  assert.equal(tokens.completion, 40);
+  assert.equal(tokens.total, 140);
+  assert.equal(latencyMs.quiz.count, 1);
+});
+
+test('estimated cost is reported only when token pricing is configured', async () => {
+  const { stub } = fakeClient([validQuiz]);
+  setClientForTesting(stub);
+  await generateQuiz(params);
+
+  assert.equal(metrics.snapshot().tokens.estimatedCostUsd, null);
+
+  process.env.PRICE_PER_1M_INPUT_USD = '0.30';
+  process.env.PRICE_PER_1M_OUTPUT_USD = '2.50';
+
+  try {
+    // 100 prompt tokens at $0.30/M + 40 completion tokens at $2.50/M.
+    assert.equal(metrics.snapshot().tokens.estimatedCostUsd, 0.00013);
+  } finally {
+    delete process.env.PRICE_PER_1M_INPUT_USD;
+    delete process.env.PRICE_PER_1M_OUTPUT_USD;
+  }
 });

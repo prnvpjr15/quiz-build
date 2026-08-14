@@ -50,7 +50,7 @@ function transientError(status = 503) {
   return err;
 }
 
-// Mirrors the surface llmService uses from the @google/genai client. Yields
+// Mirrors the surface llmClient uses from the @google/genai client. Yields
 // queued responses in order; once exhausted it repeats the last one, so a
 // single queued error models a persistently failing upstream.
 //
@@ -70,7 +70,11 @@ function fakeClient(responses) {
           index += 1;
 
           if (next instanceof Error) throw next;
-          return { text: typeof next === 'string' ? next : JSON.stringify(next) };
+
+          return {
+            text: typeof next === 'string' ? next : JSON.stringify(next),
+            usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 40 },
+          };
         },
       },
     },
