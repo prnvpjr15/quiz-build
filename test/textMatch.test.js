@@ -1,6 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { normalize, similarity, isFuzzyMatch, editDistance } = require('../src/textMatch');
+const {
+  normalize,
+  similarity,
+  isFuzzyMatch,
+  editDistance,
+  isTransposition,
+} = require('../src/textMatch');
 
 const THRESHOLD = 0.85;
 
@@ -70,6 +76,45 @@ test('isFuzzyMatch does not apply the short-answer allowance to tiny answers', (
 
 test('isFuzzyMatch rejects a two-edit difference in a short answer', () => {
   assert.equal(isFuzzyMatch('pots', 'put', THRESHOLD), false);
+});
+
+// The short-answer allowance covers transpositions only. A substitution of the
+// same edit distance changes which answer was meant, so "v day" is not "d day"
+// however close it looks.
+test('isFuzzyMatch rejects a single substitution in a short answer', () => {
+  assert.equal(isFuzzyMatch('v day', 'd day', THRESHOLD), false);
+  assert.equal(isFuzzyMatch('bat', 'bad', THRESHOLD), false);
+  assert.equal(isFuzzyMatch('mars', 'mare', THRESHOLD), false);
+});
+
+test('isTransposition recognises only an adjacent swap', () => {
+  assert.equal(isTransposition('cosnt', 'const'), true);
+  assert.equal(isTransposition('serach', 'search'), true);
+
+  assert.equal(isTransposition('v day', 'd day'), false, 'substitution');
+  assert.equal(isTransposition('tonsc', 'const'), false, 'non-adjacent swap');
+  assert.equal(isTransposition('cost', 'const'), false, 'different lengths');
+  assert.equal(isTransposition('const', 'const'), false, 'identical strings');
+});
+
+// The substitution rule must not also reject ordinary slips of length.
+test('isFuzzyMatch accepts a single inserted or dropped character', () => {
+  assert.equal(isFuzzyMatch('consts', 'const', THRESHOLD), true, 'stray key');
+  assert.equal(isFuzzyMatch('cons', 'const', THRESHOLD), true, 'dropped key');
+});
+
+// Numbers are never near-misses: a wrong year is wrong, not a typo.
+test('isFuzzyMatch never fuzzy-matches numeric answers', () => {
+  assert.equal(isFuzzyMatch('1946', '1945', THRESHOLD), false);
+  assert.equal(isFuzzyMatch('1954', '1945', THRESHOLD), false, 'even as a transposition');
+  assert.equal(isFuzzyMatch('404', '403', THRESHOLD), false);
+  assert.equal(isFuzzyMatch('100', '1000', THRESHOLD), false);
+});
+
+// The exact stage still settles a correctly typed number, so the rule above
+// rejects near-misses without rejecting right answers.
+test('identical numeric answers still match exactly', () => {
+  assert.equal(normalize('1945'), normalize(' 1945 '));
 });
 
 test('similarity is 1 for answers that differ only in formatting', () => {

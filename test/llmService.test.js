@@ -6,7 +6,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { generateQuiz } = require('../src/llmService');
 const { UpstreamUnavailableError, setClientForTesting } = require('../src/llmClient');
-const { validQuiz, schemaViolatingQuiz, transientError, fakeClient } = require('./helpers');
+const {
+  validQuiz,
+  schemaViolatingQuiz,
+  transientError,
+  quotaError,
+  fakeClient,
+} = require('./helpers');
 const metrics = require('../src/metrics');
 
 const params = {
@@ -121,6 +127,79 @@ test('a persistently unavailable model raises UpstreamUnavailableError', async (
   // Four transient attempts, and no schema-correction attempts burned.
   assert.equal(calls.length, 4);
   assert.equal(metrics.snapshot().llm.schemaRetries, 0);
+});
+
+// The three failures behind a 503 need different advice, so they are
+// classified rather than flattened into "the model is busy".
+test('an exhausted daily quota is reported as daily-quota', async () => {
+  const { stub } = fakeClient([quotaError('day')]);
+  setClientForTesting(stub);
+
+  await assert.rejects(
+    () => generateQuiz(params),
+    (err) => {
+      assert.ok(err instanceof UpstreamUnavailableError);
+      assert.equal(err.reason, 'daily-quota');
+      assert.match(err.message, /daily request quota/i);
+      return true;
+    }
+  );
+});
+
+// Retrying cannot recover an allowance that resets tomorrow, so the remaining
+// attempts are skipped instead of delaying the error by the backoff schedule.
+test('a daily quota failure gives up immediately instead of retrying', async () => {
+  const { stub, calls } = fakeClient([quotaError('day')]);
+  setClientForTesting(stub);
+
+  await assert.rejects(() => generateQuiz(params), UpstreamUnavailableError);
+  assert.equal(calls.length, 1, 'no point retrying a daily allowance');
+});
+
+test('a per-minute quota is reported as rate-limited and still retried', async () => {
+  const { stub, calls } = fakeClient([quotaError('minute')]);
+  setClientForTesting(stub);
+
+  await assert.rejects(
+    () => generateQuiz(params),
+    (err) => {
+      assert.equal(err.reason, 'rate-limited');
+      return true;
+    }
+  );
+
+  assert.equal(calls.length, 4, 'a per-minute window can clear, so retries are worth it');
+});
+
+test('a genuine outage is reported as overloaded', async () => {
+  const { stub } = fakeClient([transientError(503)]);
+  setClientForTesting(stub);
+
+  await assert.rejects(
+    () => generateQuiz(params),
+    (err) => {
+      assert.equal(err.reason, 'overloaded');
+      assert.match(err.message, /unavailable/i);
+      return true;
+    }
+  );
+});
+
+// Unrecognised wording must not strand a user who could simply retry.
+test('an unrecognised 429 falls back to the retryable classification', async () => {
+  const vague = new Error('Too Many Requests');
+  vague.status = 429;
+
+  const { stub } = fakeClient([vague]);
+  setClientForTesting(stub);
+
+  await assert.rejects(
+    () => generateQuiz(params),
+    (err) => {
+      assert.equal(err.reason, 'rate-limited');
+      return true;
+    }
+  );
 });
 
 test('a non-transient error propagates immediately without retrying', async () => {

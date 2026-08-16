@@ -1,7 +1,12 @@
 const { z } = require('zod');
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const QUESTION_TYPES = ['multiple-choice', 'true-false', 'short-answer'];
+const QUESTION_TYPES = ['multiple-choice', 'true-false', 'short-answer', 'fill-in-blank'];
+
+// Both are graded identically — free text compared against a reference answer.
+// They differ only in how the question is posed, so the distinction lives in
+// the prompt and the UI rather than in the grader.
+const FREE_TEXT_TYPES = ['short-answer', 'fill-in-blank'];
 
 const MultipleChoiceQuestion = z.object({
   type: z.literal('multiple-choice'),
@@ -25,18 +30,36 @@ const ShortAnswerQuestion = z.object({
   explanation: z.string().min(1),
 });
 
+const FillInBlankQuestion = z.object({
+  type: z.literal('fill-in-blank'),
+  question: z.string().min(1),
+  correctAnswer: z.string().min(1),
+  explanation: z.string().min(1),
+});
+
 // Shape the LLM must produce. IDs are assigned server-side after validation
 // so the model never has to invent unique identifiers.
 const QuestionContentSchema = z.discriminatedUnion('type', [
   MultipleChoiceQuestion,
   TrueFalseQuestion,
   ShortAnswerQuestion,
+  FillInBlankQuestion,
 ]).superRefine((q, ctx) => {
   if (q.type === 'multiple-choice' && q.correctAnswerIndex >= q.options.length) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'correctAnswerIndex must be a valid index into options',
       path: ['correctAnswerIndex'],
+    });
+  }
+
+  // A fill-in-the-blank question that contains no blank is a short-answer
+  // question wearing the wrong label, and the UI would render it misleadingly.
+  if (q.type === 'fill-in-blank' && !/_{2,}/.test(q.question)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'fill-in-blank questions must contain a blank written as ______',
+      path: ['question'],
     });
   }
 });
@@ -76,6 +99,7 @@ const SubmitAnswersRequestSchema = z.object({
 module.exports = {
   DIFFICULTIES,
   QUESTION_TYPES,
+  FREE_TEXT_TYPES,
   QuestionContentSchema,
   QuizGenerationSchema,
   QuestionSchema,

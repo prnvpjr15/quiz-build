@@ -24,24 +24,20 @@ Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey), 
 
 ```bash
 npm install
-npm run client:install
 cp .env.example .env   # then set GEMINI_API_KEY
-npm run client:build   # compiles client/ into public/
-npm run dev            # or: npm start
+npm run dev
 ```
 
-Then open **http://localhost:3000** — Express serves the compiled frontend from `public/`, same origin as the API, so CORS never comes into play.
+`npm run dev` prints one URL to open. It starts the API and the frontend together, installs the frontend's dependencies on first run, and moves to the next free port if something else already holds 3000 or 5173. Edits to either half reload automatically.
 
-`public/` is a build artefact and is not committed. If it is missing the API still runs and the server says so on startup.
-
-### Working on the frontend
+### Running the production build
 
 ```bash
-npm run dev           # API on :3000
-npm run client:dev    # Vite on :5173, proxying /api to :3000
+npm run build   # compiles client/ into public/
+npm start
 ```
 
-Use the Vite server while editing the UI — it has hot reload and proxies API calls to Express, so both halves behave as one origin. `npm run client:build` is only needed to serve the compiled bundle from Express directly.
+Then open **http://localhost:3000** — Express serves the compiled frontend from `public/`, same origin as the API, so CORS never comes into play. `public/` is a build artefact and is not committed; if it is missing, the API still runs and the server says so on startup.
 
 ## Testing
 

@@ -6,10 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "client:install": "npm --prefix client install",
-    "client:build": "npm --prefix client run build",
-    "client:dev": "npm --prefix client run dev",
+    "dev": "node scripts/dev.js",
+    "dev:api": "nodemon src/index.js",
+    "build": "npm --prefix client install && npm --prefix client run build",
     "test": "node --test",
     "test:watch": "node --test --watch",
     "test:coverage": "node --test --experimental-test-coverage",

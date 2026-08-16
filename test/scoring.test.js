@@ -37,6 +37,13 @@ const quiz = {
       correctAnswer: 'lexical environment',
       explanation: 'That is the name.',
     },
+    {
+      id: 'q-fib',
+      type: 'fill-in-blank',
+      question: 'A closure captures its ______.',
+      correctAnswer: 'lexical environment',
+      explanation: 'That is the name.',
+    },
   ],
 };
 
@@ -176,11 +183,29 @@ test('short-answer: an unanswered question never reaches the judge', async () =>
   assert.equal(judgeStub.calls.length, 0);
 });
 
+// Fill-in-the-blank differs from short answer only in how the question reads,
+// so it must go through the same three grading stages.
+test('fill-in-blank is graded by the same pipeline as short answer', async () => {
+  const exact = await gradeOne('q-fib', 'Lexical Environment.');
+  assert.equal(exact.correct, true);
+  assert.equal(exact.matchType, MATCH.EXACT);
+
+  const fuzzy = await gradeOne('q-fib', 'lexical environments');
+  assert.equal(fuzzy.correct, true);
+  assert.equal(fuzzy.matchType, MATCH.FUZZY);
+
+  const judgeStub = stubJudge({ correct: true, reason: 'Same concept.' });
+  const semantic = await gradeOne('q-fib', 'the scope it was defined in', judgeStub);
+  assert.equal(semantic.correct, true);
+  assert.equal(semantic.matchType, MATCH.SEMANTIC);
+  assert.equal(judgeStub.calls.length, 1);
+});
+
 test('grades every question even when no answers are submitted', async () => {
   const { score, total, results } = await gradeQuiz(quiz, []);
 
   assert.equal(score, 0);
-  assert.equal(total, 4);
+  assert.equal(total, 5);
   assert.ok(results.every((r) => r.correct === false && r.userAnswer === null));
 });
 
@@ -198,7 +223,7 @@ test('score counts only correct answers and ignores unknown question ids', async
   );
 
   assert.equal(score, 2);
-  assert.equal(total, 4);
+  assert.equal(total, 5);
 });
 
 test('results expose the correct answer and explanation for review', async () => {

@@ -50,6 +50,30 @@ function transientError(status = 503) {
   return err;
 }
 
+// Reproduces the shape of a real provider quota rejection, including the
+// quota id that says which window was exceeded — the only signal available for
+// telling "wait a minute" apart from "come back tomorrow".
+function quotaError(scope = 'day') {
+  const quotaId =
+    scope === 'day'
+      ? 'GenerateRequestsPerDayPerProjectPerModel-FreeTier'
+      : 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier';
+
+  const err = new Error(
+    JSON.stringify({
+      error: {
+        code: 429,
+        message: 'You exceeded your current quota, please check your plan and billing details.',
+        status: 'RESOURCE_EXHAUSTED',
+        details: [{ '@type': 'type.googleapis.com/google.rpc.QuotaFailure', violations: [{ quotaId }] }],
+      },
+    })
+  );
+  err.status = 429;
+
+  return err;
+}
+
 // Mirrors the surface llmClient uses from the @google/genai client. Yields
 // queued responses in order; once exhausted it repeats the last one, so a
 // single queued error models a persistently failing upstream.
@@ -81,4 +105,4 @@ function fakeClient(responses) {
   };
 }
 
-module.exports = { validQuiz, schemaViolatingQuiz, transientError, fakeClient };
+module.exports = { validQuiz, schemaViolatingQuiz, transientError, quotaError, fakeClient };

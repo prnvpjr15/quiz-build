@@ -64,27 +64,68 @@ function similarity(a, b) {
   return 1 - editDistance(left, right) / longest;
 }
 
+// True when the two strings differ only by one adjacent character swap.
+//
+// This is the distinction that makes a short-answer allowance safe. A
+// transposition is a typing error and essentially never changes which answer
+// was meant ("cosnt" is only ever "const"). A substitution of the same edit
+// distance routinely does: "v day" is not "d day", and "1946" is not "1945".
+function isTransposition(a, b) {
+  if (a.length !== b.length) return false;
+
+  const differing = [];
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) differing.push(i);
+    if (differing.length > 2) return false;
+  }
+
+  const [first, second] = differing;
+
+  return (
+    differing.length === 2 &&
+    second === first + 1 &&
+    a[first] === b[second] &&
+    a[second] === b[first]
+  );
+}
+
+// Numbers are never near-misses. One digit apart is a different quantity, a
+// different year, a different answer — so numeric responses must match exactly.
+const NUMERIC = /^\d+$/;
+
 // A ratio threshold is harsh on short answers: one wrong character in a
 // five-letter word costs 20% of the score, so "cosnt" for "const" fails a
-// threshold that "binary serach" passes. Below, a single edit is also accepted
-// outright for short answers.
+// threshold that "binary serach" passes. Below, a lone transposition is also
+// accepted for short answers.
 //
 // The window starts at 4 characters so genuinely different three-letter
-// answers ("cat"/"cut") are not swept in, and stops at 8 because longer
-// answers are already served well by the ratio.
+// answers are not swept in, and stops at 8 because longer answers are already
+// served well by the ratio.
 const SHORT_ANSWER_MIN = 4;
 const SHORT_ANSWER_MAX = 8;
 
 function isFuzzyMatch(a, b, threshold) {
-  if (similarity(a, b) >= threshold) return true;
-
   const left = normalize(a);
   const right = normalize(b);
-  const longest = Math.max(left.length, right.length);
 
+  if (NUMERIC.test(left) || NUMERIC.test(right)) return false;
+
+  if (similarity(a, b) >= threshold) return true;
+
+  const longest = Math.max(left.length, right.length);
   if (longest < SHORT_ANSWER_MIN || longest > SHORT_ANSWER_MAX) return false;
 
-  return editDistance(left, right) <= 1;
+  // Adjacent swap: a slipped finger, never a different answer.
+  if (isTransposition(left, right)) return true;
+
+  // A single inserted or dropped character — a doubled letter, a stray key, a
+  // plural. Also mechanical, so it is accepted.
+  //
+  // What is deliberately excluded is the remaining distance-1 case: a
+  // same-length substitution. That is how genuinely different answers differ
+  // from each other ("v day" vs "d day"), and it is not worth the false
+  // positives to catch the typos it would also cover.
+  return Math.abs(left.length - right.length) === 1 && editDistance(left, right) === 1;
 }
 
-module.exports = { normalize, similarity, isFuzzyMatch, editDistance };
+module.exports = { normalize, similarity, isFuzzyMatch, editDistance, isTransposition };

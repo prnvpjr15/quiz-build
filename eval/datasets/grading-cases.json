@@ -281,6 +281,42 @@
       "note": "Nonsense."
     },
     {
+      "id": "close-01",
+      "band": "hard-negative",
+      "question": "The Allied invasion of Normandy on 6 June 1944 is known as ______.",
+      "expected": "D-Day",
+      "submitted": "V-Day",
+      "shouldBeCorrect": false,
+      "note": "One substitution from the reference. Every other hard negative here is textually distant, which let a too-permissive fuzzy rule pass unnoticed."
+    },
+    {
+      "id": "close-02",
+      "band": "hard-negative",
+      "question": "In which year did the war in Europe end?",
+      "expected": "1945",
+      "submitted": "1946",
+      "shouldBeCorrect": false,
+      "note": "A wrong year is wrong, not a typo. Numbers must never fuzzy-match."
+    },
+    {
+      "id": "close-03",
+      "band": "hard-negative",
+      "question": "Which HTTP status code means 'Not Found'?",
+      "expected": "404",
+      "submitted": "403",
+      "shouldBeCorrect": false,
+      "note": "Adjacent status code, entirely different meaning."
+    },
+    {
+      "id": "close-04",
+      "band": "fuzzy",
+      "question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
+      "expected": "const",
+      "submitted": "consts",
+      "shouldBeCorrect": true,
+      "note": "Guards the fix from overcorrecting: a trailing-character slip is still a typo."
+    },
+    {
       "id": "negation-01",
       "band": "hard-negative",
       "question": "Is a JavaScript closure able to outlive the function that created it?",

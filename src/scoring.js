@@ -1,6 +1,9 @@
 const { normalize, isFuzzyMatch } = require('./textMatch');
 const { judgeAnswer } = require('./answerJudge');
+const { FREE_TEXT_TYPES } = require('./schema');
 const metrics = require('./metrics');
+
+const FREE_TEXT = new Set(FREE_TEXT_TYPES);
 
 // Above this normalized-edit-distance ratio, a difference is a typo or an
 // inflection rather than a different answer. Tuned to accept "lexical
@@ -78,7 +81,7 @@ async function gradeQuiz(quiz, answers, { judge = judgeAnswer } = {}) {
       let verdict;
       if (userAnswer === undefined) {
         verdict = { correct: false, matchType: MATCH.UNANSWERED };
-      } else if (question.type === 'short-answer') {
+      } else if (FREE_TEXT.has(question.type)) {
         verdict = await gradeShortAnswer(question, userAnswer, judge);
       } else {
         verdict = gradeObjective(question, userAnswer);

@@ -34,17 +34,20 @@ function AnswerInput({ question, value, onChange }) {
   const name = `question-${question.id}`;
 
   switch (question.type) {
+    // Stored as the option's index, which is what the grader expects and what
+    // the results come back as. Storing the text would also break on a quiz
+    // that happened to repeat an option.
     case 'multiple-choice':
       return (
         <div className="space-y-2">
           {question.options.map((option, index) => (
             <OptionRow
-              key={option}
+              key={`${index}-${option}`}
               name={name}
               label={option}
               badge={OPTION_LETTERS[index]}
-              checked={value === option}
-              onChange={() => onChange(option)}
+              checked={value === index}
+              onChange={() => onChange(index)}
             />
           ))}
         </div>

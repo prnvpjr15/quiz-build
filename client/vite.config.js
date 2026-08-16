@@ -15,9 +15,11 @@ export default defineConfig({
   server: {
     // In development Vite serves the UI and proxies the API to the Express
     // process, so relative /api paths work the same in both environments.
+    // API_PORT is set by scripts/dev.js, which may have moved the API off its
+    // default port because something else was already there.
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/health': 'http://localhost:3000',
+      '/api': `http://localhost:${process.env.API_PORT || 3000}`,
+      '/health': `http://localhost:${process.env.API_PORT || 3000}`,
     },
   },
 });

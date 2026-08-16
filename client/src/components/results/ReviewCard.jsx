@@ -44,9 +44,23 @@ function AnswerLine({ label, value, tone = 'neutral', muted = false }) {
   );
 }
 
+// An answer accepted despite not matching the key literally looks arbitrary
+// without a reason, so the grader's rationale is shown. `judgeReason` comes
+// from the server's model judge; the rest are the deterministic stages.
+function gradingNote(result) {
+  if (!result.correct) return null;
+  if (result.judgeReason) return result.judgeReason;
+
+  if (result.matchType === 'fuzzy') return 'Accepted — read as a typo or a different word form.';
+  if (result.matchType === 'semantic') return 'Accepted as equivalent to the reference answer.';
+
+  return null;
+}
+
 export default function ReviewCard({ result, index }) {
   const { correct } = result;
   const answered = isAnswered(result.userAnswer);
+  const note = gradingNote(result);
 
   return (
     <Card
@@ -97,6 +111,24 @@ export default function ReviewCard({ result, index }) {
             value={formatAnswer(result, result.correctAnswer)}
             tone="correct"
           />
+        )}
+
+        {note && (
+          <p className="flex items-start gap-2 pt-1 text-sm text-slate-500 sm:pl-31">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="mt-0.5 size-4 shrink-0 text-correct-600"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a1 1 0 0 0-1.4-1.4L9 10.6 7.7 9.3a1 1 0 0 0-1.4 1.4l2 2a1 1 0 0 0 1.4 0l4-4Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {note}
+          </p>
         )}
       </div>
 

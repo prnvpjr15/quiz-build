@@ -27,11 +27,47 @@ function setClientForTesting(stub) {
 
 // Raised when the upstream model is unreachable rather than merely wrong.
 // Routes map this to 503 so callers can tell "try again" from "bad request".
+//
+// `reason` distinguishes failures that need different advice. Collapsing them
+// tells a user whose daily allowance is gone to "try again in a few seconds",
+// which is an invitation to click a button that cannot succeed.
 class UpstreamUnavailableError extends Error {
-  constructor(message) {
+  constructor(message, reason) {
     super(message);
     this.name = 'UpstreamUnavailableError';
+    this.reason = reason;
   }
+}
+
+const QUOTA_PATTERN = /RESOURCE_EXHAUSTED|quota/i;
+// Providers report which window was exceeded in the quota id, e.g.
+// "GenerateRequestsPerDayPerProjectPerModel-FreeTier".
+const DAILY_QUOTA_PATTERN = /PerDay|per day/i;
+
+// Falls back to the more optimistic classification when the provider's wording
+// is unrecognised: advising a retry that fails is a smaller error than telling
+// someone to come back tomorrow when they need not.
+function classifyFailure(err) {
+  const message = err?.message || '';
+  const isQuota = err?.status === 429 || QUOTA_PATTERN.test(message);
+
+  if (!isQuota) return 'overloaded';
+
+  return DAILY_QUOTA_PATTERN.test(message) ? 'daily-quota' : 'rate-limited';
+}
+
+function failureMessage(reason, attempts, lastError) {
+  const detail = lastError?.message || 'unknown';
+
+  if (reason === 'daily-quota') {
+    return `The daily request quota for model "${MODEL}" is exhausted. It resets on the provider's daily cycle. Last error: ${detail}`;
+  }
+
+  if (reason === 'rate-limited') {
+    return `Model "${MODEL}" is rate limited after ${attempts} attempts. Requests are arriving faster than the quota allows. Last error: ${detail}`;
+  }
+
+  return `Model "${MODEL}" is unavailable after ${attempts} attempts. It may be under load — retry, or set GEMINI_MODEL to another model. Last error: ${detail}`;
 }
 
 // Rate limits and capacity blips are expected on shared/free-tier quota.
@@ -100,6 +136,10 @@ async function callModelWithBackoff(contents, { systemPrompt, maxOutputTokens, l
       lastError = err;
       metrics.increment('llmTransientRetries');
 
+      // A daily allowance cannot come back within a backoff window, so the
+      // remaining attempts would only delay the error the caller needs to see.
+      if (classifyFailure(err) === 'daily-quota') break;
+
       if (attempt < TRANSIENT_RETRIES) {
         const delay = BACKOFF_BASE_MS * 2 ** (attempt - 1);
         logger.warn('model unavailable, retrying', {
@@ -114,9 +154,9 @@ async function callModelWithBackoff(contents, { systemPrompt, maxOutputTokens, l
   }
 
   metrics.increment('llmFailures');
-  throw new UpstreamUnavailableError(
-    `Model "${MODEL}" is unavailable after ${TRANSIENT_RETRIES} attempts. It may be under load — retry, or set GEMINI_MODEL to another model. Last error: ${lastError?.message || 'unknown'}`
-  );
+
+  const reason = classifyFailure(lastError);
+  throw new UpstreamUnavailableError(failureMessage(reason, TRANSIENT_RETRIES, lastError), reason);
 }
 
 // Prompts the model for JSON and validates it against a Zod schema, feeding

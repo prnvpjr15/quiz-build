@@ -9,7 +9,7 @@ const assert = require('node:assert/strict');
 const request = require('supertest');
 const app = require('../src/app');
 const { setClientForTesting } = require('../src/llmClient');
-const { validQuiz, transientError, fakeClient } = require('./helpers');
+const { validQuiz, transientError, quotaError, fakeClient } = require('./helpers');
 
 const ANSWER_FIELDS = ['correctAnswerIndex', 'correctAnswer', 'explanation'];
 
@@ -171,6 +171,29 @@ test('maps a persistently unavailable model to 503, not 500', async () => {
 
   assert.equal(res.status, 503);
   assert.match(res.body.error, /unavailable/i);
+  assert.equal(res.body.code, 'overloaded');
+});
+
+// The client picks its wording from `code`, so the three causes behind a 503
+// have to survive the trip rather than collapsing into one message.
+test('a 503 carries a code distinguishing quota exhaustion from overload', async () => {
+  setClientForTesting(fakeClient([quotaError('day')]).stub);
+
+  const daily = await request(app)
+    .post('/api/quiz/generate')
+    .send({ prompt: 'JavaScript closures' });
+
+  assert.equal(daily.status, 503);
+  assert.equal(daily.body.code, 'daily-quota');
+
+  setClientForTesting(fakeClient([quotaError('minute')]).stub);
+
+  const perMinute = await request(app)
+    .post('/api/quiz/generate')
+    .send({ prompt: 'JavaScript closures' });
+
+  assert.equal(perMinute.status, 503);
+  assert.equal(perMinute.body.code, 'rate-limited');
 });
 
 // Upstream error text can quote the prompt or provider internals, so the

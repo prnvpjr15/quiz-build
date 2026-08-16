@@ -67,8 +67,15 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ error: 'Invalid request', details: err.issues });
   }
   if (err instanceof UpstreamUnavailableError) {
-    logger.warn('upstream unavailable', { requestId: req.id, error: err.message });
-    return res.status(503).json({ error: err.message });
+    logger.warn('upstream unavailable', {
+      requestId: req.id,
+      reason: err.reason,
+      error: err.message,
+    });
+
+    // `code` lets the client give advice that fits the failure; the message
+    // stays human-readable for anything reading the API directly.
+    return res.status(503).json({ error: err.message, code: err.reason });
   }
 
   logger.error('unhandled error', { requestId: req.id, error: err.message, stack: err.stack });

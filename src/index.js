@@ -16,7 +16,7 @@ const frontendEntry = path.join(__dirname, '..', 'public', 'index.html');
 if (!fs.existsSync(frontendEntry)) {
   console.warn(
     'No frontend build found in public/. The API will serve, but "/" will 404.\n' +
-      'Build it with:  npm run client:install && npm run client:build'
+      'Build it with:  npm run build     (or use `npm run dev`, which needs no build)'
   );
 }
 
