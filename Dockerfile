@@ -1,3 +1,21 @@
+# --- Stage 1: build the React frontend -------------------------------------
+# Runs in its own stage so Vite, Tailwind, and the client's dev dependencies
+# never reach the runtime image. Only the compiled bundle is carried forward.
+FROM node:24-alpine AS client
+
+WORKDIR /app/client
+
+# Manifest first so the dependency layer is cached independently of source.
+COPY client/package*.json ./
+RUN npm ci
+
+COPY client/ ./
+
+# vite.config.js writes to ../public, which resolves to /app/public here —
+# the same layout as the repository.
+RUN npm run build
+
+# --- Stage 2: runtime ------------------------------------------------------
 FROM node:24-alpine
 
 WORKDIR /app
@@ -8,7 +26,10 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 
 COPY src ./src
-COPY public ./public
+
+# The frontend is a build artefact, not source: it is produced above rather
+# than committed, so the image can never ship a stale checked-in bundle.
+COPY --from=client /app/public ./public
 
 # SQLite file lives here. Created ahead of the USER switch so the unprivileged
 # runtime user can write to it; mount a volume here to survive redeploys.

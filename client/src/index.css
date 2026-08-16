@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/* One accent, neutral structure, and a green/red pair reserved exclusively for
+   correctness. Defined as tokens so a rebrand is a single edit and no
+   component hardcodes a hex value. */
+@theme {
+  --color-accent-50: oklch(0.97 0.014 285);
+  --color-accent-100: oklch(0.94 0.03 285);
+  --color-accent-200: oklch(0.89 0.06 285);
+  --color-accent-500: oklch(0.6 0.2 285);
+  --color-accent-600: oklch(0.53 0.22 285);
+  --color-accent-700: oklch(0.46 0.2 285);
+
+  --color-correct-50: oklch(0.96 0.03 155);
+  --color-correct-200: oklch(0.86 0.08 155);
+  --color-correct-600: oklch(0.55 0.14 155);
+  --color-correct-700: oklch(0.47 0.13 155);
+
+  --color-wrong-50: oklch(0.96 0.02 25);
+  --color-wrong-200: oklch(0.87 0.07 25);
+  --color-wrong-600: oklch(0.58 0.19 25);
+  --color-wrong-700: oklch(0.5 0.19 25);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  /* Focus is never removed, only replaced with a ring that reads clearly on
+     both white cards and the tinted result states. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent-600 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer utilities {
+  .animate-screen-in {
+    animation: screen-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .animate-rise {
+    animation: rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes screen-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Users who ask for less motion get none of the above. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

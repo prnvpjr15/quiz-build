@@ -8,10 +8,7 @@ Turns a plain-text prompt (e.g. "JavaScript closures, medium difficulty") into a
 
 **Try it: [quiz-build-2dm3.onrender.com](https://quiz-build-2dm3.onrender.com)** — hosted on a free tier, so the first request after a period of inactivity takes ~30 seconds to wake the container.
 
-<!-- Screenshot: capture the results view (score ring + per-question review) at
-     roughly 1200px wide, save it as docs/screenshot.png, and uncomment:
 ![QuizBuild results view](docs/screenshot.png)
--->
 
 ## What it does
 
@@ -27,11 +24,24 @@ Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey), 
 
 ```bash
 npm install
+npm run client:install
 cp .env.example .env   # then set GEMINI_API_KEY
-npm run dev             # or: npm start
+npm run client:build   # compiles client/ into public/
+npm run dev            # or: npm start
 ```
 
-Then open **http://localhost:3000** — the frontend is served by the same Express process, so there's nothing else to start.
+Then open **http://localhost:3000** — Express serves the compiled frontend from `public/`, same origin as the API, so CORS never comes into play.
+
+`public/` is a build artefact and is not committed. If it is missing the API still runs and the server says so on startup.
+
+### Working on the frontend
+
+```bash
+npm run dev           # API on :3000
+npm run client:dev    # Vite on :5173, proxying /api to :3000
+```
+
+Use the Vite server while editing the UI — it has hot reload and proxies API calls to Express, so both halves behave as one origin. `npm run client:build` is only needed to serve the compiled bundle from Express directly.
 
 ## Testing
 
@@ -107,15 +117,28 @@ Also on by default: `helmet` security headers, a 64kb JSON body cap, CORS off un
 
 ## Frontend
 
-A dependency-free single page (`public/`) served by `express.static`, same-origin with the API so CORS never comes into play. Three states: build → take → results.
+React 19 + Tailwind 4, built with Vite from `client/` into `public/`, which Express serves — same origin as the API, so CORS never comes into play. Three screens: configure → take → results, swapped in place with no page reload.
 
-- Renders all three question types (radio options, True/False, free-text)
-- Sends the type the grader expects — option index, boolean, or string
-- Score ring, per-question correct/incorrect review, and the model's explanations
-- Explains how a free-text answer was graded when it wasn't a literal match
-- Blocks submission while any question is unanswered
-- Surfaces a friendly "model is busy" message on `503` rather than a raw error
-- Model output is inserted with `textContent`, never `innerHTML`
+```
+client/src/
+  context/QuizContext.jsx   flow state: screen, quiz, answers, results
+  lib/quizApi.js            the API seam — generate and submit
+  lib/questionTypes.js      type registry and answer comparison
+  components/config/        ConfigForm, SegmentedControl, TypeChips, …
+  components/quiz/          QuizScreen, QuestionCard, ProgressTracker, Timer
+  components/results/       ResultsScreen, ResultsSummary, ReviewCard
+```
+
+State is `useState` in a single context provider. The flow is linear and the state is small, so a reducer or an external store would add ceremony without removing complexity.
+
+- All questions on one scrollable page, each in its own card, with a sticky answered-count and progress bar
+- Per-type inputs: options, True/False, single-line blanks, and a textarea for short answers
+- Optional total-quiz timer that submits automatically on expiry
+- Submitting with blanks is allowed, but warns first and offers to jump to the first one
+- Score ring, per-question review with the correct answer and explanation
+- Selection controls are real radios and checkboxes, visually hidden and styled from `:checked` — keyboard navigation and screen-reader semantics come from the platform rather than being reimplemented
+- Correct/incorrect is never signalled by colour alone; every badge carries an icon and a text label
+- Honours `prefers-reduced-motion`
 
 ## Configuration
 
@@ -142,6 +165,8 @@ docker run -p 3000:3000 --env-file .env -v quizbuild-data:/app/data quizbuild
 ```
 
 The volume keeps the SQLite database across redeploys; without it, quizzes are lost when the container is replaced.
+
+The build is two-stage: the first compiles `client/` with Vite, the second copies only the resulting bundle into the runtime image. Vite, Tailwind, and the client's dependencies never reach production — the frontend adds about 2MB to the image — and because `public/` is excluded from the build context, the image cannot ship a stale locally-built bundle.
 
 ### Deploying
 

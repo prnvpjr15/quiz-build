@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "client:install": "npm --prefix client install",
+    "client:build": "npm --prefix client run build",
+    "client:dev": "npm --prefix client run dev",
     "test": "node --test",
     "test:watch": "node --test --watch",
     "test:coverage": "node --test --experimental-test-coverage",

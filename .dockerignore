@@ -1,5 +1,7 @@
-node_modules
+# Matches nested copies too, so client/node_modules never enters the context.
+**/node_modules
 npm-debug.log
+
 .env
 data
 .git
@@ -7,6 +9,12 @@ data
 .gitignore
 .claude
 test
+eval
 Dockerfile
 .dockerignore
 README.md
+docs
+
+# Built inside the image by the client stage; a local build must never be
+# copied in, or the image could ship a stale bundle.
+public

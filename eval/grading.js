@@ -12,6 +12,7 @@ const { values: flags } = parseArgs({
     // Gemini's free tier allows 5 requests/minute; exceeding it turns
     // judgements into 429s, which silently degrade the measurement.
     rpm: { type: 'string', default: '5' },
+    'no-cache': { type: 'boolean', default: false },
     help: { type: 'boolean', default: false },
   },
 });
@@ -25,10 +26,14 @@ Measures short-answer grading against a labeled dataset.
   npm run eval:grading -- --verbose    list every disagreement
   npm run eval:grading -- --limit 10   first N cases only
   npm run eval:grading -- --rpm 15     judge calls per minute (default 5)
+  npm run eval:grading -- --no-cache   ignore recorded judgements, re-judge all
 
-The judge is paced to --rpm because a rate-limited judgement degrades to
-"incorrect", which would quietly understate accuracy. Any run where the judge
+The judge is paced to --rpm because a rate-limited judgement degrades to a
+fallback verdict, which makes the run unmeasurable. Any run where the judge
 was unreachable is marked degraded and cannot be promoted to a baseline.
+
+Judgements are recorded to eval/.cache and reused, so a run cut short by a
+daily quota resumes rather than restarts. Repeat until no cases are degraded.
 `);
   process.exit(0);
 }
@@ -42,6 +47,7 @@ const { judgeAnswer, resetJudgeCache } = require('../src/answerJudge');
 const metrics = require('../src/metrics');
 const { classificationMetrics, stageBreakdown, diffRuns } = require('./lib/metrics');
 const { percent, heading, table, writeResults, readBaseline } = require('./lib/report');
+const judgeCache = require('./lib/judgeCache');
 
 const dataset = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'datasets', 'grading-cases.json'), 'utf8')
@@ -214,9 +220,17 @@ async function main() {
     resetJudgeCache();
 
     const rpm = Number(flags.rpm);
-    console.log(`\nJudging at ${rpm} calls/minute...`);
+    const model = process.env.GEMINI_MODEL || 'gemini-3.7-flash';
 
-    full = await runMode(paced(judgeAnswer, rpm));
+    // Reuse judgements recorded by earlier runs so a quota-limited run can
+    // pick up where the last one stopped instead of restarting from zero.
+    const cache = flags['no-cache'] ? { model, entries: {} } : judgeCache.load(model);
+    const cached = judgeCache.cachedJudge(paced(judgeAnswer, rpm), cache);
+
+    const known = Object.keys(cache.entries).length;
+    console.log(`\nJudging at ${rpm} calls/minute (${known} judgement(s) already recorded)...`);
+
+    full = await runMode(cached.judge);
     fullStats = reportMode('3. Full pipeline (normalization + fuzzy + model judge)', full);
 
     const snapshot = metrics.snapshot();
@@ -232,19 +246,28 @@ async function main() {
       ['p50 / p95 latency', snapshot.latencyMs.judge
         ? `${snapshot.latencyMs.judge.p50}ms / ${snapshot.latencyMs.judge.p95}ms`
         : 'n/a'],
+      ['reused from cache', String(cached.stats.hits)],
       ['cases settled per stage', JSON.stringify(stageBreakdown(full))],
     ]);
 
-    // A judgement that never happened is graded "incorrect", so a quota-
-    // starved run understates accuracy. Say so loudly rather than publishing
-    // a number that looks like a measurement.
+    // A case that reached stage 3 and came back with no reason attached was
+    // never actually judged — the model was unreachable and grading fell back
+    // to "incorrect".
     if (degraded) {
-      const missed = snapshot.judge.unavailable;
+      const fallbacks = full.filter((r) => r.matchType === 'none' && !r.judgeReason);
+      const flattered = fallbacks.filter((r) => r.actual === r.expected);
+
       console.log(`
-  !! DEGRADED RUN — the judge was unreachable for ${missed} case(s).
-     Those cases fell back to a deterministic verdict, so the accuracy above
-     is a lower bound, not a measurement. Usually this is provider rate
-     limiting: lower --rpm, or wait for quota to reset, and re-run.`);
+  !! DEGRADED RUN — the judge was unreachable for ${snapshot.judge.unavailable} case(s).
+
+     ${fallbacks.length} case(s) were decided by fallback rather than judged.
+     Of those, ${flattered.length} happened to agree with the label anyway —
+     scored correct without ever being tested.
+
+     Degradation does not simply understate accuracy: on a case whose label is
+     "incorrect", falling back to "incorrect" flatters the result. This number
+     is not a measurement in either direction. Re-run to fill the gaps —
+     judgements already recorded are reused, so each run needs less quota.`);
     }
   }
 

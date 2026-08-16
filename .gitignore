@@ -2,5 +2,11 @@ node_modules/
 .env
 npm-debug.log
 data/
+
 # Eval runs are per-machine output; only eval/baselines/ is committed.
 eval/results/
+eval/.cache/
+
+# Compiled frontend. Built from client/ by `npm run client:build` locally and
+# by the Dockerfile's client stage in the image, so it is never committed.
+public/
