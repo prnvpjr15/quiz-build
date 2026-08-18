@@ -100,6 +100,10 @@ function fakeClient(responses) {
             usageMetadata: { promptTokenCount: 100, candidatesTokenCount: 40 },
           };
         },
+        async list() {
+            // Provide a minimal fake model list that passes the filter for our tests
+            return [{ name: 'models/gemini-1.5-flash', supportedActions: ['generateContent'] }];
+        }
       },
     },
   };

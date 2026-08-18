@@ -8,7 +8,6 @@ Turns a plain-text prompt (e.g. "JavaScript closures, medium difficulty") into a
 
 **Try it: [quiz-build-2dm3.onrender.com](https://quiz-build-2dm3.onrender.com)** — hosted on a free tier, so the first request after a period of inactivity takes ~30 seconds to wake the container.
 
-![QuizBuild results view](docs/screenshot.png)
 
 ## What it does
 

@@ -6,7 +6,7 @@ const TRANSIENT_RETRIES = 4;
 // Tunable so retry aggressiveness can be adjusted per environment, and so
 // tests can collapse the backoff schedule instead of sleeping for seconds.
 const BACKOFF_BASE_MS = Number(process.env.BACKOFF_BASE_MS) || 1000;
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.7-flash';
+let MODEL = process.env.GEMINI_MODEL;
 
 // Constructed on first use, not at import time, so requiring this module
 // never depends on the environment already being loaded.
@@ -16,6 +16,50 @@ function getClient() {
     client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
   return client;
+}
+
+// Find the latest supported flash model to use if one isn't explicitly configured.
+async function resolveModel() {
+  if (MODEL) return MODEL;
+
+  const modelsResponse = await getClient().models.list();
+  
+  // Handle the different ways the SDK might return the list
+  const models = [];
+  if (modelsResponse.models) {
+      models.push(...modelsResponse.models);
+  } else if (modelsResponse[Symbol.asyncIterator]) {
+      for await (const m of modelsResponse) {
+          models.push(m);
+      }
+  } else {
+      for (const m of modelsResponse) {
+          models.push(m);
+      }
+  }
+
+  const available = models
+    .filter(m => 
+      m.supportedActions && m.supportedActions.includes('generateContent') &&
+      m.name.includes('gemini') && 
+      m.name.includes('flash') &&
+      !m.name.includes('vision') && 
+      !m.name.includes('exp') &&
+      !m.name.includes('legacy') &&
+      !m.name.includes('latest')
+    )
+    // Sort descending by name so higher versions (e.g., 3.7 > 3.6 > 2.5) appear first
+    .sort((a, b) => b.name.localeCompare(a.name));
+
+  if (available.length > 0) {
+    MODEL = available[0].name.replace('models/', '');
+  } else {
+    // Safe fallback if we can't find anything
+    MODEL = 'gemini-1.5-flash';
+  }
+  
+  logger.info(`Resolved Gemini model to ${MODEL}`);
+  return MODEL;
 }
 
 // Test seam: substitutes a stub exposing the same surface this module uses
@@ -58,16 +102,17 @@ function classifyFailure(err) {
 
 function failureMessage(reason, attempts, lastError) {
   const detail = lastError?.message || 'unknown';
+  const modelName = MODEL || 'gemini';
 
   if (reason === 'daily-quota') {
-    return `The daily request quota for model "${MODEL}" is exhausted. It resets on the provider's daily cycle. Last error: ${detail}`;
+    return `The daily request quota for model "${modelName}" is exhausted. It resets on the provider's daily cycle. Last error: ${detail}`;
   }
 
   if (reason === 'rate-limited') {
-    return `Model "${MODEL}" is rate limited after ${attempts} attempts. Requests are arriving faster than the quota allows. Last error: ${detail}`;
+    return `Model "${modelName}" is rate limited after ${attempts} attempts. Requests are arriving faster than the quota allows. Last error: ${detail}`;
   }
 
-  return `Model "${MODEL}" is unavailable after ${attempts} attempts. It may be under load — retry, or set GEMINI_MODEL to another model. Last error: ${detail}`;
+  return `Model "${modelName}" is unavailable after ${attempts} attempts. It may be under load — retry, or set GEMINI_MODEL to another model. Last error: ${detail}`;
 }
 
 // Rate limits and capacity blips are expected on shared/free-tier quota.
@@ -105,13 +150,14 @@ function recordUsage(response) {
 // being wrong, so it must not burn a correction attempt.
 async function callModelWithBackoff(contents, { systemPrompt, maxOutputTokens, label }) {
   let lastError;
+  const modelToUse = await resolveModel();
 
   for (let attempt = 1; attempt <= TRANSIENT_RETRIES; attempt += 1) {
     const startedAt = Date.now();
 
     try {
       const response = await getClient().models.generateContent({
-        model: MODEL,
+        model: modelToUse,
         contents,
         config: {
           systemInstruction: systemPrompt,
@@ -216,4 +262,4 @@ async function generateJson({
   throw new Error(`Failed to generate a valid ${label} after ${maxAttempts} attempts: ${lastError}`);
 }
 
-module.exports = { generateJson, UpstreamUnavailableError, setClientForTesting, MODEL };
+module.exports = { generateJson, UpstreamUnavailableError, setClientForTesting, resolveModel, get MODEL() { return MODEL; } };
