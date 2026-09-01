@@ -62,13 +62,6 @@ async function resolveModel() {
   return MODEL;
 }
 
-// Test seam: substitutes a stub exposing the same surface this module uses
-// ({ models: { generateContent } }), so the retry and schema-correction paths
-// can be driven without a network call or an API key.
-function setClientForTesting(stub) {
-  client = stub;
-}
-
 // Raised when the upstream model is unreachable rather than merely wrong.
 // Routes map this to 503 so callers can tell "try again" from "bad request".
 //
@@ -262,4 +255,7 @@ async function generateJson({
   throw new Error(`Failed to generate a valid ${label} after ${maxAttempts} attempts: ${lastError}`);
 }
 
-module.exports = { generateJson, UpstreamUnavailableError, setClientForTesting, resolveModel, get MODEL() { return MODEL; } };
+module.exports = {
+	generateJson,
+	UpstreamUnavailableError,
+	resolveModel, get MODEL() { return MODEL; } };

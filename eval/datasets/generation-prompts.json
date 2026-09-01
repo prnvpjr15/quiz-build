@@ -1,15 +1,75 @@
 {
-  "description": "Prompts exercised end to end against the real model. Chosen to span topic breadth, question types, difficulty, and two known-awkward inputs: a topic with no factual grounding, and one where the requested type is hard to satisfy.",
-  "prompts": [
-    { "id": "js-closures", "prompt": "JavaScript closures", "questionCount": 5, "difficulty": "medium", "questionType": "multiple-choice" },
-    { "id": "sql-joins", "prompt": "SQL joins and set operations", "questionCount": 5, "difficulty": "hard", "questionType": "multiple-choice" },
-    { "id": "http-basics", "prompt": "HTTP methods and status codes", "questionCount": 4, "difficulty": "easy", "questionType": "true-false" },
-    { "id": "big-o", "prompt": "Big-O complexity of common algorithms", "questionCount": 5, "difficulty": "medium", "questionType": "short-answer" },
-    { "id": "git-branching", "prompt": "Git branching and merge strategies", "questionCount": 6, "difficulty": "medium", "questionType": "mixed" },
-    { "id": "photosynthesis", "prompt": "Photosynthesis in plants", "questionCount": 5, "difficulty": "easy", "questionType": "multiple-choice" },
-    { "id": "ww2-pacific", "prompt": "The Pacific theatre of World War II", "questionCount": 5, "difficulty": "hard", "questionType": "mixed" },
-    { "id": "music-theory", "prompt": "Key signatures and the circle of fifths", "questionCount": 4, "difficulty": "medium", "questionType": "short-answer" },
-    { "id": "vague-topic", "prompt": "stuff about computers", "questionCount": 3, "difficulty": "easy", "questionType": "multiple-choice" },
-    { "id": "narrow-topic", "prompt": "the exact syntax of the Python walrus operator", "questionCount": 4, "difficulty": "hard", "questionType": "true-false" }
-  ]
+	"description": "Prompts exercised end to end against the real model. Chosen to span topic breadth, question types, difficulty, and two known-awkward inputs: a topic with no factual grounding, and one where the requested type is hard to satisfy.",
+	"prompts": [
+		{
+			"id": "js-closures",
+			"prompt": "JavaScript closures",
+			"questionCount": 5,
+			"difficulty": "medium",
+			"questionType": "multiple-choice"
+		},
+		{
+			"id": "sql-joins",
+			"prompt": "SQL joins and set operations",
+			"questionCount": 5,
+			"difficulty": "hard",
+			"questionType": "multiple-choice"
+		},
+		{
+			"id": "http-basics",
+			"prompt": "HTTP methods and status codes",
+			"questionCount": 4,
+			"difficulty": "easy",
+			"questionType": "true-false"
+		},
+		{
+			"id": "big-o",
+			"prompt": "Big-O complexity of common algorithms",
+			"questionCount": 5,
+			"difficulty": "medium",
+			"questionType": "short-answer"
+		},
+		{
+			"id": "git-branching",
+			"prompt": "Git branching and merge strategies",
+			"questionCount": 6,
+			"difficulty": "medium",
+			"questionType": "mixed"
+		},
+		{
+			"id": "photosynthesis",
+			"prompt": "Photosynthesis in plants",
+			"questionCount": 5,
+			"difficulty": "easy",
+			"questionType": "multiple-choice"
+		},
+		{
+			"id": "ww2-pacific",
+			"prompt": "The Pacific theatre of World War II",
+			"questionCount": 5,
+			"difficulty": "hard",
+			"questionType": "mixed"
+		},
+		{
+			"id": "music-theory",
+			"prompt": "Key signatures and the circle of fifths",
+			"questionCount": 4,
+			"difficulty": "medium",
+			"questionType": "short-answer"
+		},
+		{
+			"id": "vague-topic",
+			"prompt": "stuff about computers",
+			"questionCount": 3,
+			"difficulty": "easy",
+			"questionType": "multiple-choice"
+		},
+		{
+			"id": "narrow-topic",
+			"prompt": "the exact syntax of the Python walrus operator",
+			"questionCount": 4,
+			"difficulty": "hard",
+			"questionType": "true-false"
+		}
+	]
 }

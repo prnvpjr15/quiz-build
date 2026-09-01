@@ -79,12 +79,4 @@ function generationsToday() {
   return row ? row.generations : 0;
 }
 
-// Test-only: lets a suite point DB_PATH at a fresh database between files.
-function closeDb() {
-  if (db) {
-    db.close();
-    db = undefined;
-  }
-}
-
-module.exports = { saveQuiz, getQuiz, countQuizzes, recordGeneration, generationsToday, closeDb };
+module.exports = { saveQuiz, getQuiz, countQuizzes, recordGeneration, generationsToday };

@@ -8,14 +8,14 @@ const NON_ALPHANUMERIC = /[^\p{L}\p{N}\s]/gu;
 // Folds away the differences that never change whether an answer is right:
 // case, accents, punctuation, spacing, and a leading article.
 function normalize(text) {
-  return String(text)
-    .normalize('NFD')
-    .replace(COMBINING_MARKS, '')
-    .toLowerCase()
-    .replace(NON_ALPHANUMERIC, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(LEADING_ARTICLE, '');
+	return String(text)
+		.normalize("NFD")
+		.replace(COMBINING_MARKS, "")
+		.toLowerCase()
+		.replace(NON_ALPHANUMERIC, " ")
+		.replace(/\s+/g, " ")
+		.trim()
+		.replace(LEADING_ARTICLE, "");
 }
 
 // Damerau-Levenshtein (optimal string alignment): like Levenshtein, but a
@@ -23,45 +23,45 @@ function normalize(text) {
 // the most common typing error, and plain Levenshtein double-charges them —
 // which pushed real typos like "cosnt" and "serach" below the match threshold.
 function editDistance(a, b) {
-  if (a === b) return 0;
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
+	if (a === b) return 0;
+	if (a.length === 0) return b.length;
+	if (b.length === 0) return a.length;
 
-  // Three rows rather than two, because a transposition looks back two.
-  let twoBack = new Array(b.length + 1);
-  let previous = Array.from({ length: b.length + 1 }, (_, i) => i);
-  let current = new Array(b.length + 1);
+	// Three rows rather than two, because a transposition looks back two.
+	let twoBack = new Array(b.length + 1);
+	let previous = Array.from({ length: b.length + 1 }, (_, i) => i);
+	let current = new Array(b.length + 1);
 
-  for (let i = 1; i <= a.length; i += 1) {
-    current[0] = i;
+	for (let i = 1; i <= a.length; i += 1) {
+		current[0] = i;
 
-    for (let j = 1; j <= b.length; j += 1) {
-      const substitution = previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1);
-      current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, substitution);
+		for (let j = 1; j <= b.length; j += 1) {
+			const substitution = previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1);
+			current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, substitution);
 
-      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
-        current[j] = Math.min(current[j], twoBack[j - 2] + 1);
-      }
-    }
+			if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+				current[j] = Math.min(current[j], twoBack[j - 2] + 1);
+			}
+		}
 
-    [twoBack, previous, current] = [previous, current, twoBack];
-  }
+		[twoBack, previous, current] = [previous, current, twoBack];
+	}
 
-  return previous[b.length];
+	return previous[b.length];
 }
 
 // 1 = identical, 0 = nothing in common. Compares normalized forms, so callers
 // get typo and pluralization tolerance without doing their own cleanup.
 function similarity(a, b) {
-  const left = normalize(a);
-  const right = normalize(b);
+	const left = normalize(a);
+	const right = normalize(b);
 
-  if (left === right) return 1;
+	if (left === right) return 1;
 
-  const longest = Math.max(left.length, right.length);
-  if (longest === 0) return 1;
+	const longest = Math.max(left.length, right.length);
+	if (longest === 0) return 1;
 
-  return 1 - editDistance(left, right) / longest;
+	return 1 - editDistance(left, right) / longest;
 }
 
 // True when the two strings differ only by one adjacent character swap.
@@ -71,22 +71,22 @@ function similarity(a, b) {
 // was meant ("cosnt" is only ever "const"). A substitution of the same edit
 // distance routinely does: "v day" is not "d day", and "1946" is not "1945".
 function isTransposition(a, b) {
-  if (a.length !== b.length) return false;
+	if (a.length !== b.length) return false;
 
-  const differing = [];
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) differing.push(i);
-    if (differing.length > 2) return false;
-  }
+	const differing = [];
+	for (let i = 0; i < a.length; i += 1) {
+		if (a[i] !== b[i]) differing.push(i);
+		if (differing.length > 2) return false;
+	}
 
-  const [first, second] = differing;
+	const [first, second] = differing;
 
-  return (
-    differing.length === 2 &&
-    second === first + 1 &&
-    a[first] === b[second] &&
-    a[second] === b[first]
-  );
+	return (
+		differing.length === 2 &&
+		second === first + 1 &&
+		a[first] === b[second] &&
+		a[second] === b[first]
+	);
 }
 
 // Numbers are never near-misses. One digit apart is a different quantity, a
@@ -105,27 +105,34 @@ const SHORT_ANSWER_MIN = 4;
 const SHORT_ANSWER_MAX = 8;
 
 function isFuzzyMatch(a, b, threshold) {
-  const left = normalize(a);
-  const right = normalize(b);
+	const left = normalize(a);
+	const right = normalize(b);
 
-  if (NUMERIC.test(left) || NUMERIC.test(right)) return false;
+	if (NUMERIC.test(left) || NUMERIC.test(right)) return false;
 
-  if (similarity(a, b) >= threshold) return true;
+	if (similarity(a, b) >= threshold) return true;
 
-  const longest = Math.max(left.length, right.length);
-  if (longest < SHORT_ANSWER_MIN || longest > SHORT_ANSWER_MAX) return false;
+	const longest = Math.max(left.length, right.length);
+	if (longest < SHORT_ANSWER_MIN || longest > SHORT_ANSWER_MAX) return false;
 
-  // Adjacent swap: a slipped finger, never a different answer.
-  if (isTransposition(left, right)) return true;
+	// Adjacent swap: a slipped finger, never a different answer.
+	if (isTransposition(left, right)) return true;
 
-  // A single inserted or dropped character — a doubled letter, a stray key, a
-  // plural. Also mechanical, so it is accepted.
-  //
-  // What is deliberately excluded is the remaining distance-1 case: a
-  // same-length substitution. That is how genuinely different answers differ
-  // from each other ("v day" vs "d day"), and it is not worth the false
-  // positives to catch the typos it would also cover.
-  return Math.abs(left.length - right.length) === 1 && editDistance(left, right) === 1;
+	// A single inserted or dropped character — a doubled letter, a stray key, a
+	// plural. Also mechanical, so it is accepted.
+	//
+	// What is deliberately excluded is the remaining distance-1 case: a
+	// same-length substitution. That is how genuinely different answers differ
+	// from each other ("v day" vs "d day"), and it is not worth the false
+	// positives to catch the typos it would also cover.
+	return (
+		Math.abs(left.length - right.length) === 1 &&
+		editDistance(left, right) === 1
+	);
 }
 
-module.exports = { normalize, similarity, isFuzzyMatch, editDistance, isTransposition };
+module.exports = {
+	normalize,
+	similarity,
+	isFuzzyMatch,
+};

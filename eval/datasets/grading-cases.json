@@ -1,329 +1,329 @@
 {
-  "description": "Labeled short-answer grading cases. `shouldBeCorrect` is the human judgement the pipeline is measured against. Cases are grouped by the stage that ought to settle them, so a regression points at a specific stage rather than a global accuracy drop.",
-  "cases": [
-    {
-      "id": "exact-01",
-      "band": "literal",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "lexical environment",
-      "shouldBeCorrect": true,
-      "note": "Identical text."
-    },
-    {
-      "id": "exact-02",
-      "band": "literal",
-      "question": "Which HTTP status code means 'Not Found'?",
-      "expected": "404",
-      "submitted": "404",
-      "shouldBeCorrect": true,
-      "note": "Numeric answer."
-    },
-    {
-      "id": "format-01",
-      "band": "literal",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "  The Lexical Environment!  ",
-      "shouldBeCorrect": true,
-      "note": "Casing, article, punctuation, whitespace."
-    },
-    {
-      "id": "format-02",
-      "band": "literal",
-      "question": "Which data structure follows last-in-first-out order?",
-      "expected": "stack",
-      "submitted": "A stack.",
-      "shouldBeCorrect": true,
-      "note": "Leading article and trailing period."
-    },
-    {
-      "id": "format-03",
-      "band": "literal",
-      "question": "What does CSS stand for?",
-      "expected": "cascading style sheets",
-      "submitted": "Cascading Style Sheets",
-      "shouldBeCorrect": true,
-      "note": "Capitalization only."
-    },
-    {
-      "id": "fuzzy-01",
-      "band": "fuzzy",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "lexical environments",
-      "shouldBeCorrect": true,
-      "note": "Pluralization."
-    },
-    {
-      "id": "fuzzy-02",
-      "band": "fuzzy",
-      "question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
-      "expected": "const",
-      "submitted": "cosnt",
-      "shouldBeCorrect": true,
-      "note": "Transposed characters."
-    },
-    {
-      "id": "fuzzy-03",
-      "band": "fuzzy",
-      "question": "What is the name of the JavaScript event queue mechanism?",
-      "expected": "event loop",
-      "submitted": "event-loop",
-      "shouldBeCorrect": true,
-      "note": "Hyphenation."
-    },
-    {
-      "id": "fuzzy-04",
-      "band": "fuzzy",
-      "question": "Which algorithm repeatedly halves a sorted search range?",
-      "expected": "binary search",
-      "submitted": "binary serach",
-      "shouldBeCorrect": true,
-      "note": "Single-character typo."
-    },
-    {
-      "id": "para-01",
-      "band": "semantic",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "the environment where the function was defined",
-      "shouldBeCorrect": true,
-      "note": "Correct concept, entirely different words."
-    },
-    {
-      "id": "para-02",
-      "band": "semantic",
-      "question": "What does a closure let a function do?",
-      "expected": "access variables from its enclosing scope after that scope has returned",
-      "submitted": "keep using outer variables even once the outer function has finished",
-      "shouldBeCorrect": true,
-      "note": "Full paraphrase."
-    },
-    {
-      "id": "para-03",
-      "band": "semantic",
-      "question": "Which HTTP method is idempotent and used to replace a resource?",
-      "expected": "PUT",
-      "submitted": "the put method",
-      "shouldBeCorrect": true,
-      "note": "Answer embedded in a phrase."
-    },
-    {
-      "id": "para-04",
-      "band": "semantic",
-      "question": "What is the time complexity of binary search?",
-      "expected": "O(log n)",
-      "submitted": "logarithmic",
-      "shouldBeCorrect": true,
-      "note": "Equivalent notation stated in words."
-    },
-    {
-      "id": "para-05",
-      "band": "semantic",
-      "question": "What does the SQL GROUP BY clause do?",
-      "expected": "collapses rows sharing a value into aggregate groups",
-      "submitted": "it buckets rows that have the same value so you can aggregate over them",
-      "shouldBeCorrect": true,
-      "note": "Verbose but correct."
-    },
-    {
-      "id": "para-06",
-      "band": "semantic",
-      "question": "What is a race condition?",
-      "expected": "a bug where the outcome depends on the timing of concurrent operations",
-      "submitted": "when two threads hit the same thing at once and the result changes depending on who gets there first",
-      "shouldBeCorrect": true,
-      "note": "Informal register, correct content."
-    },
-    {
-      "id": "para-07",
-      "band": "semantic",
-      "question": "In Git, what does a merge commit represent?",
-      "expected": "a commit with two or more parents joining divergent histories",
-      "submitted": "a commit that has more than one parent because two branches came back together",
-      "shouldBeCorrect": true,
-      "note": "Restatement."
-    },
-    {
-      "id": "para-08",
-      "band": "semantic",
-      "question": "What is the purpose of an index in a relational database?",
-      "expected": "speeds up lookups by avoiding a full table scan",
-      "submitted": "so the database doesn't have to read every row to find what you asked for",
-      "shouldBeCorrect": true,
-      "note": "Explains the same mechanism."
-    },
-    {
-      "id": "syn-01",
-      "band": "semantic",
-      "question": "What is the process of converting an object into a storable format called?",
-      "expected": "serialization",
-      "submitted": "marshalling",
-      "shouldBeCorrect": true,
-      "note": "Accepted synonym in common usage."
-    },
-    {
-      "id": "syn-02",
-      "band": "semantic",
-      "question": "What kind of function calls itself?",
-      "expected": "recursive function",
-      "submitted": "one that uses recursion",
-      "shouldBeCorrect": true,
-      "note": "Same concept, different part of speech."
-    },
-    {
-      "id": "near-01",
-      "band": "hard-negative",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "the call stack",
-      "shouldBeCorrect": false,
-      "note": "Related term from the same topic, but wrong."
-    },
-    {
-      "id": "near-02",
-      "band": "hard-negative",
-      "question": "Which data structure follows last-in-first-out order?",
-      "expected": "stack",
-      "submitted": "queue",
-      "shouldBeCorrect": false,
-      "note": "The opposite structure."
-    },
-    {
-      "id": "near-03",
-      "band": "hard-negative",
-      "question": "What is the time complexity of binary search?",
-      "expected": "O(log n)",
-      "submitted": "O(n log n)",
-      "shouldBeCorrect": false,
-      "note": "Textually similar, numerically wrong."
-    },
-    {
-      "id": "near-04",
-      "band": "hard-negative",
-      "question": "Which HTTP method is idempotent and used to replace a resource?",
-      "expected": "PUT",
-      "submitted": "POST",
-      "shouldBeCorrect": false,
-      "note": "Adjacent method, not idempotent."
-    },
-    {
-      "id": "near-05",
-      "band": "hard-negative",
-      "question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
-      "expected": "const",
-      "submitted": "let",
-      "shouldBeCorrect": false,
-      "note": "Block-scoped but reassignable."
-    },
-    {
-      "id": "near-06",
-      "band": "hard-negative",
-      "question": "What does the SQL GROUP BY clause do?",
-      "expected": "collapses rows sharing a value into aggregate groups",
-      "submitted": "it sorts the rows by a column",
-      "shouldBeCorrect": false,
-      "note": "Describes ORDER BY."
-    },
-    {
-      "id": "near-07",
-      "band": "hard-negative",
-      "question": "What is a race condition?",
-      "expected": "a bug where the outcome depends on the timing of concurrent operations",
-      "submitted": "when a program runs out of memory under load",
-      "shouldBeCorrect": false,
-      "note": "Different failure mode."
-    },
-    {
-      "id": "vague-01",
-      "band": "hard-negative",
-      "question": "What is the captured scope record called in JavaScript?",
-      "expected": "lexical environment",
-      "submitted": "something to do with scope",
-      "shouldBeCorrect": false,
-      "note": "Too vague to distinguish from a guess."
-    },
-    {
-      "id": "vague-02",
-      "band": "hard-negative",
-      "question": "What is the purpose of an index in a relational database?",
-      "expected": "speeds up lookups by avoiding a full table scan",
-      "submitted": "it makes the database better",
-      "shouldBeCorrect": false,
-      "note": "No mechanism named."
-    },
-    {
-      "id": "vague-03",
-      "band": "hard-negative",
-      "question": "What does a closure let a function do?",
-      "expected": "access variables from its enclosing scope after that scope has returned",
-      "submitted": "remember things",
-      "shouldBeCorrect": false,
-      "note": "Directionally right, far too vague to credit."
-    },
-    {
-      "id": "empty-01",
-      "band": "hard-negative",
-      "question": "What does CSS stand for?",
-      "expected": "cascading style sheets",
-      "submitted": "i don't know",
-      "shouldBeCorrect": false,
-      "note": "Explicit non-answer."
-    },
-    {
-      "id": "empty-02",
-      "band": "hard-negative",
-      "question": "Which HTTP status code means 'Not Found'?",
-      "expected": "404",
-      "submitted": "asdfgh",
-      "shouldBeCorrect": false,
-      "note": "Nonsense."
-    },
-    {
-      "id": "close-01",
-      "band": "hard-negative",
-      "question": "The Allied invasion of Normandy on 6 June 1944 is known as ______.",
-      "expected": "D-Day",
-      "submitted": "V-Day",
-      "shouldBeCorrect": false,
-      "note": "One substitution from the reference. Every other hard negative here is textually distant, which let a too-permissive fuzzy rule pass unnoticed."
-    },
-    {
-      "id": "close-02",
-      "band": "hard-negative",
-      "question": "In which year did the war in Europe end?",
-      "expected": "1945",
-      "submitted": "1946",
-      "shouldBeCorrect": false,
-      "note": "A wrong year is wrong, not a typo. Numbers must never fuzzy-match."
-    },
-    {
-      "id": "close-03",
-      "band": "hard-negative",
-      "question": "Which HTTP status code means 'Not Found'?",
-      "expected": "404",
-      "submitted": "403",
-      "shouldBeCorrect": false,
-      "note": "Adjacent status code, entirely different meaning."
-    },
-    {
-      "id": "close-04",
-      "band": "fuzzy",
-      "question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
-      "expected": "const",
-      "submitted": "consts",
-      "shouldBeCorrect": true,
-      "note": "Guards the fix from overcorrecting: a trailing-character slip is still a typo."
-    },
-    {
-      "id": "negation-01",
-      "band": "hard-negative",
-      "question": "Is a JavaScript closure able to outlive the function that created it?",
-      "expected": "yes, the captured environment survives",
-      "submitted": "no, it is destroyed when the function returns",
-      "shouldBeCorrect": false,
-      "note": "Contradicts the reference answer while sharing its vocabulary."
-    }
-  ]
+	"description": "Labeled short-answer grading cases. `shouldBeCorrect` is the human judgement the pipeline is measured against. Cases are grouped by the stage that ought to settle them, so a regression points at a specific stage rather than a global accuracy drop.",
+	"cases": [
+		{
+			"id": "exact-01",
+			"band": "literal",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "lexical environment",
+			"shouldBeCorrect": true,
+			"note": "Identical text."
+		},
+		{
+			"id": "exact-02",
+			"band": "literal",
+			"question": "Which HTTP status code means 'Not Found'?",
+			"expected": "404",
+			"submitted": "404",
+			"shouldBeCorrect": true,
+			"note": "Numeric answer."
+		},
+		{
+			"id": "format-01",
+			"band": "literal",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "  The Lexical Environment!  ",
+			"shouldBeCorrect": true,
+			"note": "Casing, article, punctuation, whitespace."
+		},
+		{
+			"id": "format-02",
+			"band": "literal",
+			"question": "Which data structure follows last-in-first-out order?",
+			"expected": "stack",
+			"submitted": "A stack.",
+			"shouldBeCorrect": true,
+			"note": "Leading article and trailing period."
+		},
+		{
+			"id": "format-03",
+			"band": "literal",
+			"question": "What does CSS stand for?",
+			"expected": "cascading style sheets",
+			"submitted": "Cascading Style Sheets",
+			"shouldBeCorrect": true,
+			"note": "Capitalization only."
+		},
+		{
+			"id": "fuzzy-01",
+			"band": "fuzzy",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "lexical environments",
+			"shouldBeCorrect": true,
+			"note": "Pluralization."
+		},
+		{
+			"id": "fuzzy-02",
+			"band": "fuzzy",
+			"question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
+			"expected": "const",
+			"submitted": "cosnt",
+			"shouldBeCorrect": true,
+			"note": "Transposed characters."
+		},
+		{
+			"id": "fuzzy-03",
+			"band": "fuzzy",
+			"question": "What is the name of the JavaScript event queue mechanism?",
+			"expected": "event loop",
+			"submitted": "event-loop",
+			"shouldBeCorrect": true,
+			"note": "Hyphenation."
+		},
+		{
+			"id": "fuzzy-04",
+			"band": "fuzzy",
+			"question": "Which algorithm repeatedly halves a sorted search range?",
+			"expected": "binary search",
+			"submitted": "binary serach",
+			"shouldBeCorrect": true,
+			"note": "Single-character typo."
+		},
+		{
+			"id": "para-01",
+			"band": "semantic",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "the environment where the function was defined",
+			"shouldBeCorrect": true,
+			"note": "Correct concept, entirely different words."
+		},
+		{
+			"id": "para-02",
+			"band": "semantic",
+			"question": "What does a closure let a function do?",
+			"expected": "access variables from its enclosing scope after that scope has returned",
+			"submitted": "keep using outer variables even once the outer function has finished",
+			"shouldBeCorrect": true,
+			"note": "Full paraphrase."
+		},
+		{
+			"id": "para-03",
+			"band": "semantic",
+			"question": "Which HTTP method is idempotent and used to replace a resource?",
+			"expected": "PUT",
+			"submitted": "the put method",
+			"shouldBeCorrect": true,
+			"note": "Answer embedded in a phrase."
+		},
+		{
+			"id": "para-04",
+			"band": "semantic",
+			"question": "What is the time complexity of binary search?",
+			"expected": "O(log n)",
+			"submitted": "logarithmic",
+			"shouldBeCorrect": true,
+			"note": "Equivalent notation stated in words."
+		},
+		{
+			"id": "para-05",
+			"band": "semantic",
+			"question": "What does the SQL GROUP BY clause do?",
+			"expected": "collapses rows sharing a value into aggregate groups",
+			"submitted": "it buckets rows that have the same value so you can aggregate over them",
+			"shouldBeCorrect": true,
+			"note": "Verbose but correct."
+		},
+		{
+			"id": "para-06",
+			"band": "semantic",
+			"question": "What is a race condition?",
+			"expected": "a bug where the outcome depends on the timing of concurrent operations",
+			"submitted": "when two threads hit the same thing at once and the result changes depending on who gets there first",
+			"shouldBeCorrect": true,
+			"note": "Informal register, correct content."
+		},
+		{
+			"id": "para-07",
+			"band": "semantic",
+			"question": "In Git, what does a merge commit represent?",
+			"expected": "a commit with two or more parents joining divergent histories",
+			"submitted": "a commit that has more than one parent because two branches came back together",
+			"shouldBeCorrect": true,
+			"note": "Restatement."
+		},
+		{
+			"id": "para-08",
+			"band": "semantic",
+			"question": "What is the purpose of an index in a relational database?",
+			"expected": "speeds up lookups by avoiding a full table scan",
+			"submitted": "so the database doesn't have to read every row to find what you asked for",
+			"shouldBeCorrect": true,
+			"note": "Explains the same mechanism."
+		},
+		{
+			"id": "syn-01",
+			"band": "semantic",
+			"question": "What is the process of converting an object into a storable format called?",
+			"expected": "serialization",
+			"submitted": "marshalling",
+			"shouldBeCorrect": true,
+			"note": "Accepted synonym in common usage."
+		},
+		{
+			"id": "syn-02",
+			"band": "semantic",
+			"question": "What kind of function calls itself?",
+			"expected": "recursive function",
+			"submitted": "one that uses recursion",
+			"shouldBeCorrect": true,
+			"note": "Same concept, different part of speech."
+		},
+		{
+			"id": "near-01",
+			"band": "hard-negative",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "the call stack",
+			"shouldBeCorrect": false,
+			"note": "Related term from the same topic, but wrong."
+		},
+		{
+			"id": "near-02",
+			"band": "hard-negative",
+			"question": "Which data structure follows last-in-first-out order?",
+			"expected": "stack",
+			"submitted": "queue",
+			"shouldBeCorrect": false,
+			"note": "The opposite structure."
+		},
+		{
+			"id": "near-03",
+			"band": "hard-negative",
+			"question": "What is the time complexity of binary search?",
+			"expected": "O(log n)",
+			"submitted": "O(n log n)",
+			"shouldBeCorrect": false,
+			"note": "Textually similar, numerically wrong."
+		},
+		{
+			"id": "near-04",
+			"band": "hard-negative",
+			"question": "Which HTTP method is idempotent and used to replace a resource?",
+			"expected": "PUT",
+			"submitted": "POST",
+			"shouldBeCorrect": false,
+			"note": "Adjacent method, not idempotent."
+		},
+		{
+			"id": "near-05",
+			"band": "hard-negative",
+			"question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
+			"expected": "const",
+			"submitted": "let",
+			"shouldBeCorrect": false,
+			"note": "Block-scoped but reassignable."
+		},
+		{
+			"id": "near-06",
+			"band": "hard-negative",
+			"question": "What does the SQL GROUP BY clause do?",
+			"expected": "collapses rows sharing a value into aggregate groups",
+			"submitted": "it sorts the rows by a column",
+			"shouldBeCorrect": false,
+			"note": "Describes ORDER BY."
+		},
+		{
+			"id": "near-07",
+			"band": "hard-negative",
+			"question": "What is a race condition?",
+			"expected": "a bug where the outcome depends on the timing of concurrent operations",
+			"submitted": "when a program runs out of memory under load",
+			"shouldBeCorrect": false,
+			"note": "Different failure mode."
+		},
+		{
+			"id": "vague-01",
+			"band": "hard-negative",
+			"question": "What is the captured scope record called in JavaScript?",
+			"expected": "lexical environment",
+			"submitted": "something to do with scope",
+			"shouldBeCorrect": false,
+			"note": "Too vague to distinguish from a guess."
+		},
+		{
+			"id": "vague-02",
+			"band": "hard-negative",
+			"question": "What is the purpose of an index in a relational database?",
+			"expected": "speeds up lookups by avoiding a full table scan",
+			"submitted": "it makes the database better",
+			"shouldBeCorrect": false,
+			"note": "No mechanism named."
+		},
+		{
+			"id": "vague-03",
+			"band": "hard-negative",
+			"question": "What does a closure let a function do?",
+			"expected": "access variables from its enclosing scope after that scope has returned",
+			"submitted": "remember things",
+			"shouldBeCorrect": false,
+			"note": "Directionally right, far too vague to credit."
+		},
+		{
+			"id": "empty-01",
+			"band": "hard-negative",
+			"question": "What does CSS stand for?",
+			"expected": "cascading style sheets",
+			"submitted": "i don't know",
+			"shouldBeCorrect": false,
+			"note": "Explicit non-answer."
+		},
+		{
+			"id": "empty-02",
+			"band": "hard-negative",
+			"question": "Which HTTP status code means 'Not Found'?",
+			"expected": "404",
+			"submitted": "asdfgh",
+			"shouldBeCorrect": false,
+			"note": "Nonsense."
+		},
+		{
+			"id": "close-01",
+			"band": "hard-negative",
+			"question": "The Allied invasion of Normandy on 6 June 1944 is known as ______.",
+			"expected": "D-Day",
+			"submitted": "V-Day",
+			"shouldBeCorrect": false,
+			"note": "One substitution from the reference. Every other hard negative here is textually distant, which let a too-permissive fuzzy rule pass unnoticed."
+		},
+		{
+			"id": "close-02",
+			"band": "hard-negative",
+			"question": "In which year did the war in Europe end?",
+			"expected": "1945",
+			"submitted": "1946",
+			"shouldBeCorrect": false,
+			"note": "A wrong year is wrong, not a typo. Numbers must never fuzzy-match."
+		},
+		{
+			"id": "close-03",
+			"band": "hard-negative",
+			"question": "Which HTTP status code means 'Not Found'?",
+			"expected": "404",
+			"submitted": "403",
+			"shouldBeCorrect": false,
+			"note": "Adjacent status code, entirely different meaning."
+		},
+		{
+			"id": "close-04",
+			"band": "fuzzy",
+			"question": "Which keyword declares a block-scoped variable that cannot be reassigned?",
+			"expected": "const",
+			"submitted": "consts",
+			"shouldBeCorrect": true,
+			"note": "Guards the fix from overcorrecting: a trailing-character slip is still a typo."
+		},
+		{
+			"id": "negation-01",
+			"band": "hard-negative",
+			"question": "Is a JavaScript closure able to outlive the function that created it?",
+			"expected": "yes, the captured environment survives",
+			"submitted": "no, it is destroyed when the function returns",
+			"shouldBeCorrect": false,
+			"note": "Contradicts the reference answer while sharing its vocabulary."
+		}
+	]
 }
